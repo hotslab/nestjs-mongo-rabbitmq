@@ -1,0 +1,26 @@
+version: '3.5'
+
+services:
+  payever_backend_mongo:
+    image: mongo:4.4.18-focal
+    container_name: payever_backend_mongo
+    environment:
+      - MONGO_INITDB_DATABASE=admin
+      - MONGO_INITDB_ROOT_USERNAME=payever
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    ports:
+      - 27017:27017
+    restart: unless-stopped
+    volumes:
+      # seeding scripts
+      # - ./mongo-entrypoint:/docker-entrypoint-initdb.d
+      # named volumes
+      - ./mongodb:/data/db
+
+  payever_backend_rabbitmq:
+    image: rabbitmq:3.13.0-management
+    container_name: payever_backend_rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: unless-stopped
