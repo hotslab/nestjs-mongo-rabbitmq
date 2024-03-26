@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
@@ -21,10 +20,14 @@ import {
 } from '@nestjs/microservices';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { EmailService } from '../emails/email.service';
 
 @Controller('api/users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
+  ) {}
 
   @Post()
   @UseInterceptors(
@@ -53,29 +56,17 @@ export class UsersController {
     return await this.usersService.create(userData, avatar);
   }
 
-  @Get()
-  async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
-  }
-
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<User> {
+  async findOne(@Param('id') id: string): Promise<unknown> {
     return this.usersService.findOne(id);
   }
 
-  @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return this.usersService.delete(id);
-  }
-
-  @Delete(':id/all')
-  async deleteAll() {
-    return this.usersService.deleteAll();
-  }
-
   @MessagePattern('send-new-user-email')
-  sendNewUSerEmail(@Payload() data: unknown, @Ctx() context: RmqContext) {
-    console.log('USER DATA', data);
+  sendNewUSerEmail(
+    @Payload() data: { user: UserType },
+    @Ctx() context: RmqContext,
+  ) {
+    this.emailService.sendEmail(data);
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
     channel.ack(originalMsg);

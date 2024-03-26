@@ -1,97 +1,115 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { UsersController } from './users.controller';
-// import { UserType } from './types';
-// import { UsersService } from './users.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AvatarsController } from './avatars.controller';
+import { AvatarsService } from './avatars.service';
+import { readFileSync } from 'node:fs';
+import { UserType } from '../users/dto/user';
+import { RmqContext } from '@nestjs/microservices';
+import { Avatar } from './schemas/avatar.schema';
+import { Document, Types } from 'mongoose';
 
-// describe('Users Controller', () => {
-//   let controller: UsersController;
-//   let service: UsersService;
-//   const userData: UserType = {
-//     firstName: 'John',
-//     lastName: 'Doe',
-//     email: 'john@email.com',
-//     password: 'secret',
-//   };
+describe('Users Controller', () => {
+  let controller: AvatarsController;
+  let service: AvatarsService;
+  let rabbitContext: RmqContext;
 
-//   const mockUser = {
-//     firstName: 'John',
-//     lastName: 'Doe',
-//     email: 'john@email.com',
-//     password: 'secret',
-//     _id: 'a id',
-//   };
+  const image = readFileSync(process.cwd() + '/test/images/TestAvatar.jpg');
+  const buffer = Buffer.from(image);
 
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       controllers: [UsersController],
-//       providers: [
-//         {
-//           provide: UsersService,
-//           useValue: {
-//             findAll: jest.fn().mockResolvedValue([
-//               {
-//                 firstName: 'John',
-//                 lastName: 'Doe',
-//                 email: 'john@email.com',
-//                 password: 'secret',
-//               },
-//               {
-//                 firstName: 'Jane',
-//                 lastName: 'Smith',
-//                 email: 'jane@email.com',
-//                 password: 'secret',
-//               },
-//               {
-//                 firstName: 'Hans',
-//                 lastName: 'Kruger',
-//                 email: 'hans@email.com',
-//                 password: 'secret',
-//               },
-//             ]),
-//             create: jest.fn().mockResolvedValue(userData),
-//           },
-//         },
-//       ],
-//     }).compile();
+  const avatarImage: Express.Multer.File = {
+    fieldname: 'avatar',
+    originalname: 'TestAvatar.jpg',
+    encoding: '7bit',
+    mimetype: 'image/jpg',
+    buffer: buffer,
+  } as Express.Multer.File;
 
-//     controller = module.get<UsersController>(UsersController);
-//     service = module.get<UsersService>(UsersService);
-//   });
+  const userData: UserType = {
+    _id: '66014def6b542795fe3b00ab',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@email.com',
+    password: 'secret',
+  };
 
-//   describe('create()', () => {
-//     it('should create a new user', async () => {
-//       const createSpy = jest
-//         .spyOn(service, 'create')
-//         .mockResolvedValueOnce(mockUser);
+  const avatarData: Avatar = {
+    userId: new Types.ObjectId('66014def6b542795fe3b00ab'),
+    hash: 'data:image/jpg;base64,4werwrrref3f3wfsdjvlkdfvna.....',
+    file: './images/TestAvatar.jpg',
+  };
 
-//       await controller.create(userData);
-//       expect(createSpy).toHaveBeenCalledWith(userData);
-//     });
-//   });
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AvatarsController],
+      providers: [
+        {
+          provide: AvatarsService,
+          useValue: {
+            create: jest.fn().mockResolvedValue(null),
+            findOne: jest.fn().mockResolvedValue(null),
+            delete: jest.fn().mockResolvedValue(null),
+          },
+        },
+        {
+          provide: RmqContext,
+          useValue: {
+            getChannelRef: () => {
+              return {
+                ack: () => jest.fn().mockResolvedValue(null),
+              };
+            },
+            getMessage: jest.fn().mockResolvedValue(() => {
+              message: 'channel message sent';
+            }),
+          },
+        },
+      ],
+    }).compile();
 
-//   describe('findAll()', () => {
-//     it('should return an array of users', async () => {
-//       expect(controller.findAll()).resolves.toEqual([
-//         {
-//           firstName: 'John',
-//           lastName: 'Doe',
-//           email: 'john@email.com',
-//           password: 'secret',
-//         },
-//         {
-//           firstName: 'Jane',
-//           lastName: 'Smith',
-//           email: 'jane@email.com',
-//           password: 'secret',
-//         },
-//         {
-//           firstName: 'Hans',
-//           lastName: 'Kruger',
-//           email: 'hans@email.com',
-//           password: 'secret',
-//         },
-//       ]);
-//       expect(service.findAll).toHaveBeenCalled();
-//     });
-//   });
-// });
+    controller = module.get<AvatarsController>(AvatarsController);
+    service = module.get<AvatarsService>(AvatarsService);
+    rabbitContext = module.get<RmqContext>(RmqContext);
+  });
+
+  describe('createAvatar()', () => {
+    it('should create a new avatar', async () => {
+      const createSpy = jest.spyOn(service, 'create');
+      await controller.createAvatar(
+        { user: userData, avatar: avatarImage },
+        rabbitContext,
+      );
+      expect(createSpy).toHaveBeenCalledWith({
+        user: userData,
+        avatar: avatarImage,
+      });
+    });
+  });
+
+  describe('findOne()', () => {
+    it('should return the user avatar', async () => {
+      const createSpy = jest
+        .spyOn(service, 'findOne')
+        .mockResolvedValueOnce(avatarData);
+      expect(controller.findOne('66014def6b542795fe3b00ab')).resolves.toEqual(
+        avatarData,
+      );
+      expect(createSpy).toHaveBeenCalledWith('66014def6b542795fe3b00ab');
+      expect(service.findOne).toHaveBeenCalled();
+    });
+  });
+
+  describe('delete()', () => {
+    it('should delete the user avatar', async () => {
+      const createSpy = jest.spyOn(service, 'delete').mockResolvedValueOnce(
+        avatarData as Document<unknown, object, Avatar> &
+          Avatar & {
+            _id: Types.ObjectId;
+          },
+      );
+      expect(controller.delete('66014def6b542795fe3b00ab')).resolves.toEqual(
+        avatarData,
+      );
+      expect(createSpy).toHaveBeenCalledWith('66014def6b542795fe3b00ab');
+      expect(service.delete).toHaveBeenCalled();
+    });
+  });
+});

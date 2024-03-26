@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
 import { AvatarsService } from './avatars.service';
-import { AvatarType } from './dto/avatar';
 import { Avatar } from './schemas/avatar.schema';
 import {
   Ctx,
@@ -17,10 +16,7 @@ export class AvatarsController {
   @MessagePattern('create-avatar')
   async createAvatar(
     @Payload()
-    {
-      user,
-      avatar,
-    }: { user: UserType; avatar: Record<string, string | number> },
+    { user, avatar }: { user: UserType; avatar: Express.Multer.File },
     @Ctx() context: RmqContext,
   ) {
     try {
@@ -35,11 +31,11 @@ export class AvatarsController {
 
   @Get('/:id/avatar')
   async findOne(@Param('id') id: string): Promise<Avatar> {
-    return this.avatarsService.findOne(id);
+    return await this.avatarsService.findOne(id);
   }
 
   @Delete('/:id/avatar')
   async delete(@Param('id') id: string) {
-    return this.avatarsService.delete(id);
+    return await this.avatarsService.delete(id);
   }
 }

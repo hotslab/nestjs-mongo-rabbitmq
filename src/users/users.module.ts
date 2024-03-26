@@ -7,9 +7,12 @@ import * as bcrypt from 'bcrypt';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Avatar, AvatarSchema } from 'src/avatars/schemas/avatar.schema';
 import { MulterModule } from '@nestjs/platform-express';
+import { HttpModule } from '@nestjs/axios';
+import { EmailService } from '../emails/email.service';
 
 @Module({
   imports: [
+    HttpModule,
     ClientsModule.registerAsync([
       {
         name: 'RMQ_SERVICE',
@@ -17,7 +20,7 @@ import { MulterModule } from '@nestjs/platform-express';
           transport: Transport.RMQ,
           options: {
             urls: ['amqp://localhost:5672'],
-            queue: 'users_queue',
+            queue: 'main_queue',
             queueOptions: {
               durable: false,
             },
@@ -55,6 +58,6 @@ import { MulterModule } from '@nestjs/platform-express';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, EmailService],
 })
 export class UsersModule {}
