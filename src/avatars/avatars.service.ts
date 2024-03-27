@@ -21,20 +21,16 @@ export class AvatarsService {
     user: UserType;
     avatar: Express.Multer.File;
   }): Promise<unknown> {
-    try {
-      const buffer = readFileSync(avatar.path);
-      const base64String = Buffer.from(buffer).toString('base64');
-      const final = `data:${avatar.mimetype};base64,${base64String}`;
-      const avatarData = {
-        userId: user._id,
-        hash: final,
-        file: avatar.path as string,
-      };
-      const newAvatar = await this.avatarModel.create(avatarData);
-      return newAvatar;
-    } catch (error) {
-      return error.message;
-    }
+    const buffer = readFileSync(avatar.path);
+    const base64String = Buffer.from(buffer).toString('base64');
+    const final = `data:${avatar.mimetype};base64,${base64String}`;
+    const avatarData = {
+      userId: user._id,
+      hash: final,
+      file: avatar.path as string,
+    };
+    const newAvatar = await this.avatarModel.create(avatarData);
+    return newAvatar;
   }
 
   async findOne(id: string): Promise<Avatar | null> {
@@ -46,18 +42,14 @@ export class AvatarsService {
   }
 
   async delete(id: string) {
-    try {
-      const deletedAvatar = await this.avatarModel
-        .findOneAndDelete({ userId: id })
-        .exec();
-      if (deletedAvatar)
-        unlink(deletedAvatar.file, (err) => {
-          if (err) throw err;
-          this.logger.log(`successfully deleted ${deletedAvatar.file}`);
-        });
-      return deletedAvatar;
-    } catch (error) {
-      return error.message;
-    }
+    const deletedAvatar = await this.avatarModel
+      .findOneAndDelete({ userId: id })
+      .exec();
+    if (deletedAvatar)
+      unlink(deletedAvatar.file, (err) => {
+        if (err) throw err;
+        this.logger.log(`successfully deleted ${deletedAvatar.file}`);
+      });
+    return deletedAvatar;
   }
 }

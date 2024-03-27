@@ -21,32 +21,26 @@ export class UsersService {
     userData: UserType,
     avatar: Express.Multer.File,
   ): Promise<{ user: User; originalname: string; filename: string }> {
-    try {
-      const exists = await this.userModel
-        .findOne({ email: userData.email })
-        .exec();
-      if (exists) {
-        throw new HttpException(
-          `User with email ${userData.email} already exists!`,
-          HttpStatus.CONFLICT,
-        );
-      } else {
-        const user = await this.userModel.create(userData);
-        this.queueClient
-          .send('send-new-user-email', { user: user })
-          .subscribe();
-        this.queueClient
-          .send('create-avatar', { user: user, avatar: avatar })
-          .subscribe();
-        const response = {
-          user: user,
-          originalname: avatar.originalname,
-          filename: avatar.filename,
-        };
-        return response;
-      }
-    } catch (error) {
-      return error.message;
+    const exists = await this.userModel
+      .findOne({ email: userData.email })
+      .exec();
+    if (exists) {
+      throw new HttpException(
+        `User with email ${userData.email} already exists!`,
+        HttpStatus.CONFLICT,
+      );
+    } else {
+      const user = await this.userModel.create(userData);
+      this.queueClient.send('send-new-user-email', { user: user }).subscribe();
+      this.queueClient
+        .send('create-avatar', { user: user, avatar: avatar })
+        .subscribe();
+      const response = {
+        user: user,
+        originalname: avatar.originalname,
+        filename: avatar.filename,
+      };
+      return response;
     }
   }
 

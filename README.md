@@ -30,7 +30,7 @@ $ cd nestjs-mongo-rabbitmq
 $ cp .env.example .env
 ```
 - Ensure you have installed docker and docker-compose installed if you do not have locally installed instances of **mongodb** and **rabbitmq**, or if you want to use separate instances from your local ones.
-- If you want to use docker versions whilst separating the local instances, please do ensure the **ports** numbers do not clash by changing the `docker yml` file port numbers as well as the `.env` file for the mongodb and rabbitmq port numbers.
+- If you want to use the docker versions whilst separating the local instances, please do ensure the **ports** numbers do not clash by changing the `docker-compose.yml` file port numbers, as well as the `.env` file for the mongodb and rabbitmq port numbers.
 - To run the docker versions please run the following commands:
 ```bash
 # create the persistent storage volumes for both mongodb and rabbitmq
