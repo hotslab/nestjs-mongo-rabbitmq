@@ -12,9 +12,6 @@ services:
       - 27017:27017
     restart: unless-stopped
     volumes:
-      # seeding scripts
-      # - ./mongo-entrypoint:/docker-entrypoint-initdb.d
-      # named volumes
       - ./mongodb:/data/db
 
   payever_backend_rabbitmq:
@@ -24,3 +21,5 @@ services:
       - 5672:5672
       - 15672:15672
     restart: unless-stopped
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq

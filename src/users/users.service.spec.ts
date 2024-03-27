@@ -5,11 +5,9 @@ import { UsersService } from './users.service';
 import { User } from './schemas/user.schema';
 import { readFileSync } from 'node:fs';
 import { ClientProxy } from '@nestjs/microservices';
-import { Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { UserType } from './dto/user';
 import { Observable } from 'rxjs';
-import { subscribe } from 'node:diagnostics_channel';
 
 const image = readFileSync(process.cwd() + '/test/images/TestAvatar.jpg');
 const buffer = Buffer.from(image);
@@ -87,6 +85,10 @@ describe('UsersService', () => {
     model = module.get<Model<User>>(getModelToken('User'));
     queueClient = module.get<ClientProxy>('RMQ_SERVICE');
     httpService = module.get<HttpService>(HttpService);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should be defined', () => {

@@ -70,6 +70,10 @@ describe('Users Controller', () => {
     rabbitContext = module.get<RmqContext>(RmqContext);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('createAvatar()', () => {
     it('should create a new avatar', async () => {
       const createSpy = jest.spyOn(service, 'create');

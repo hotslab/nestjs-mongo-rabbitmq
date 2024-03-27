@@ -76,6 +76,10 @@ describe('Users Controller', () => {
     emailService = module.get<EmailService>(EmailService);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('create()', () => {
     it('should create a new user', async () => {
       const createUserServiceSpy = jest

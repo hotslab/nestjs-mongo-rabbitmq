@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Logger,
   Param,
   ParseFilePipeBuilder,
   Post,
@@ -27,7 +28,10 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+    this.logger = new Logger(UsersController.name);
+  }
 
   @Post()
   @UseInterceptors(
@@ -66,9 +70,13 @@ export class UsersController {
     @Payload() data: { user: UserType },
     @Ctx() context: RmqContext,
   ) {
-    this.emailService.sendEmail(data);
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
-    channel.ack(originalMsg);
+    try {
+      this.emailService.sendEmail(data);
+      const channel = context.getChannelRef();
+      const originalMsg = context.getMessage();
+      channel.ack(originalMsg);
+    } catch (error) {
+      this.logger.error('SEND NEW USER EMAIL  ERROR', { error: error });
+    }
   }
 }

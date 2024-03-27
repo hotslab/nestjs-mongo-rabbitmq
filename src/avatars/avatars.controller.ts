@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Logger, Param } from '@nestjs/common';
 import { AvatarsService } from './avatars.service';
 import { Avatar } from './schemas/avatar.schema';
 import {
@@ -7,11 +7,16 @@ import {
   Payload,
   RmqContext,
 } from '@nestjs/microservices';
-import { UserType } from 'src/users/dto/user';
+import { UserType } from '../users/dto/user';
 
 @Controller('api/users')
 export class AvatarsController {
-  constructor(private readonly avatarsService: AvatarsService) {}
+  constructor(
+    private readonly avatarsService: AvatarsService,
+    private readonly logger: Logger,
+  ) {
+    this.logger = new Logger(AvatarsController.name);
+  }
 
   @MessagePattern('create-avatar')
   async createAvatar(
@@ -22,7 +27,7 @@ export class AvatarsController {
     try {
       await this.avatarsService.create({ user: user, avatar: avatar });
     } catch (error) {
-      console.log('AVATAR ERROR', error);
+      this.logger.error('AVATAR CREATION ERROR', { error: error });
     }
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AvatarsController } from './avatars.controller';
 import { AvatarsService } from './avatars.service';
@@ -25,6 +25,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ]),
   ],
   controllers: [AvatarsController],
-  providers: [AvatarsService],
+  providers: [AvatarsService, Logger],
 })
 export class AvatarsModule {}

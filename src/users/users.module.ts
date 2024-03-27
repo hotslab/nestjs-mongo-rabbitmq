@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { User, UserSchema } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { Avatar, AvatarSchema } from 'src/avatars/schemas/avatar.schema';
+import { Avatar, AvatarSchema } from '../avatars/schemas/avatar.schema';
 import { MulterModule } from '@nestjs/platform-express';
 import { HttpModule } from '@nestjs/axios';
 import { EmailService } from '../emails/email.service';
@@ -58,6 +58,6 @@ import { EmailService } from '../emails/email.service';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, EmailService],
+  providers: [UsersService, EmailService, Logger],
 })
 export class UsersModule {}
